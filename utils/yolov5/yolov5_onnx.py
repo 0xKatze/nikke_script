@@ -189,19 +189,9 @@ class YOLOV5_ONNX(object):
 
     def infer(self,src_img):
         img_size=(1024,1024) 
+        #img_size = (640,640)
         conf_thres=0.5 
         iou_thres=0.45 
-        class_num=3
-
-        stride=[8,16,32]
-
-        anchor_list= [[10,13, 16,30, 33,23],[30,61, 62,45, 59,119], [116,90, 156,198, 373,326]]
-        anchor = np.array(anchor_list).astype(np.float).reshape(3,-1,2)
-
-        area = img_size[0] * img_size[1]
-        size = [int(area / stride[0] ** 2), int(area / stride[1] ** 2), int(area / stride[2] ** 2)]
-        feature = [[int(j / stride[i]) for j in img_size] for i in range(3)]
-
 
         src_size=src_img.shape[:2]
 
@@ -222,33 +212,6 @@ class YOLOV5_ONNX(object):
         input_feed=self.get_input_feed(img)
         pred=self.onnx_session.run(output_names=self.output_name,input_feed=input_feed)
 
-        """
-        y = []
-        y.append(torch.tensor(pred[0].reshape(-1,size[0]*3,5+class_num)).sigmoid())
-        y.append(torch.tensor(pred[1].reshape(-1,size[1]*3,5+class_num)).sigmoid())
-        y.append(torch.tensor(pred[2].reshape(-1,size[2]*3,5+class_num)).sigmoid())
-
-        grid = []
-        for k, f in enumerate(feature):
-            grid.append([[i, j] for j in range(f[0]) for i in range(f[1])])
-
-        z = []
-        for i in range(3):
-            src = y[i]
-
-            xy = src[..., 0:2] * 2. - 0.5
-            wh = (src[..., 2:4] * 2) ** 2
-            dst_xy = []
-            dst_wh = []
-            for j in range(3):
-                dst_xy.append((xy[:, j * size[i]:(j + 1) * size[i], :] + torch.tensor(grid[i])) * stride[i])
-                dst_wh.append(wh[:, j * size[i]:(j + 1) * size[i], :] * anchor[i][j])
-            src[..., 0:2] = torch.from_numpy(np.concatenate((dst_xy[0], dst_xy[1], dst_xy[2]), axis=1))
-            src[..., 2:4] = torch.from_numpy(np.concatenate((dst_wh[0], dst_wh[1], dst_wh[2]), axis=1))
-            z.append(src.view(1, -1, 5+class_num))
-
-        results = torch.cat(z, 1)
-        """
         results = torch.tensor(pred)
         results = self.nms(results, conf_thres, iou_thres)
         cast=time.time()-start
@@ -295,7 +258,7 @@ class YOLOV5_ONNX(object):
 
 
 if __name__=="__main__":
-    model=YOLOV5_ONNX(onnx_path="./best.onnx")
+    model=YOLOV5_ONNX(onnx_path="./yolov5t_1024.onnx")
     img_path="1_371.jpg"
     img = cv2.imread(img_path) # BGR
     print(model.infer(img))
