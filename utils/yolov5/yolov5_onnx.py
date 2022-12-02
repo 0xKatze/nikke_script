@@ -188,8 +188,8 @@ class YOLOV5_ONNX(object):
 
 
     def infer(self,src_img):
-        img_size=(1024,1024) 
-        #img_size = (640,640)
+        #img_size=(1024,1024) 
+        img_size = (640,640)
         conf_thres=0.5 
         iou_thres=0.45 
 
@@ -258,7 +258,7 @@ class YOLOV5_ONNX(object):
 
 
 if __name__=="__main__":
-    model=YOLOV5_ONNX(onnx_path="./yolov5t_1024.onnx")
+    model=YOLOV5_ONNX(onnx_path="./yolov5t_640.onnx")
     img_path="1_371.jpg"
     img = cv2.imread(img_path) # BGR
     print(model.infer(img))
