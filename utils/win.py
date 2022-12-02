@@ -33,6 +33,7 @@ import win32gui
 import win32api
 import win32com.client
 import win32con
+import win32ui
 
 def setForeground(hWnd):
     if hWnd != win32gui.GetForegroundWindow():
@@ -47,18 +48,51 @@ def winShot(hWnd):
     img = ImageGrab.grab(rect) # [RGB]
     return img
 
+from ctypes import windll
+from PIL import Image
 def get_screenshot_by_hwnd(hWnd,call_front=False,is_backgroud=False):
     if not is_backgroud:
         if call_front and setForeground(hWnd):
             img = winShot(hWnd)
-            img = np.asarray(img)
+            img = np.asarray(img)[:,:,::-1]  # [BGR]
             return img
         else:
             return None
     else:
         # to do
         # inference: https://stackoverflow.com/questions/19695214/screenshot-of-inactive-window-printwindow-win32gui
-        win32gui.MessageBox(0,'get backgroud app screenshot not implement yet','Warning',0)
-        return None
+        # what is DC : https://blog.csdn.net/tc1175307496/article/details/52708832
+        
+        rect = win32gui.GetWindowRect(hWnd)
+        print('window rect is:' , rect)
+        w = rect[2] - rect[0]
+        h = rect[3] - rect[1]
+
+        hWndDC = win32gui.GetWindowDC(hWnd)
+        mfcDC = win32ui.CreateDCFromHandle(hWndDC)
+        saveDC = mfcDC.CreateCompatibleDC()
+
+        saveBitMap = win32ui.CreateBitmap()
+        saveBitMap.CreateCompatibleBitmap(mfcDC, w, h)
+
+        saveDC.SelectObject(saveBitMap)
+
+        result = windll.user32.PrintWindow(hWnd, saveDC.GetSafeHdc(), 1)
+        bmpinfo = saveBitMap.GetInfo()
+        bmpstr = saveBitMap.GetBitmapBits(True)
+
+        im = Image.frombuffer(
+            'RGB',
+            (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
+            bmpstr, 'raw', 'BGRX', 0, 1
+        )
+
+        win32gui.DeleteObject(saveBitMap.GetHandle())
+        saveDC.DeleteDC()
+        mfcDC.DeleteDC()
+        win32gui.ReleaseDC(hWnd,hWndDC)
+        
+        im = np.asarray(im)[:,:,::-1]
+        return im
 
 

@@ -17,7 +17,7 @@ class Simulator(object):
         self.detector = YOLOV5_ONNX(config.onnx_path)
 
     def screenshot(self):
-        return get_screenshot_by_hwnd(self.top_hWnd)
+        return get_screenshot_by_hwnd(self.top_hWnd,0,1)
 
     def move_cur_center(self):
         rect = win32gui.GetWindowRect(self.top_hWnd)
