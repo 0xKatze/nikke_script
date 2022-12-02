@@ -258,7 +258,7 @@ class YOLOV5_ONNX(object):
 
 
 if __name__=="__main__":
-    model=YOLOV5_ONNX(onnx_path="./yolov5t_640.onnx")
+    model=YOLOV5_ONNX(onnx_path="./yolov5n_640.onnx")
     img_path="1_371.jpg"
     img = cv2.imread(img_path) # BGR
     print(model.infer(img))
