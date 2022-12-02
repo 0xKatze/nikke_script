@@ -1,6 +1,6 @@
 config = {
-    'duration' : 0.3,
-    'is_smooth' : 1,
-    'smooth_k' : 100,
-    'onnx_path': './utils/yolov5/best.onnx'
+    'duration' : 0.01,
+    'is_smooth' : 0,
+    'smooth_k' : 25,
+    'onnx_path': './utils/yolov5/yolov5n_640.onnx'
 }

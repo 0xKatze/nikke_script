@@ -4,16 +4,19 @@ import win32gui
 import win32con
 
 def left_down(hWnd, x, y):
+    x,y = int(x), int(y)
     wparam = win32con.MK_LBUTTON
     lparam = y << 16 | x
     win32gui.PostMessage(hWnd, win32con.WM_LBUTTONDOWN, wparam, lparam)
 
 def move_to(hWnd, x, y, is_ldown=False):
+    x,y = int(x), int(y)
     wparam = win32con.MK_LBUTTON if is_ldown else 0
     lparam = y << 16 | x
     win32gui.PostMessage(hWnd, win32con.WM_MOUSEMOVE, wparam, lparam)    
 
 def left_up(hWnd, x, y):
+    x,y = int(x), int(y)
     wparam = 0
     lparam = y << 16 | x
     win32gui.PostMessage(hWnd, win32con.WM_LBUTTONUP, wparam, lparam)       

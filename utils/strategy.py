@@ -8,16 +8,21 @@ from utils import mouse
 from utils.yolov5.yolov5_onnx import YOLOV5_ONNX
 from utils.win import get_screenshot_by_hwnd
 
+import cv2
+
 # match aim_box to mouse
 
 class Simulator(object):
     def __init__(self, hWnd, config):
         self.top_hWnd = hWnd
+        self.ctl_hWnd = hWnd
         self.config = config
         self.detector = YOLOV5_ONNX(config.onnx_path)
 
     def screenshot(self):
-        return get_screenshot_by_hwnd(self.top_hWnd,0,1)
+        img = get_screenshot_by_hwnd(self.top_hWnd,0,1)
+        cv2.imwrite('screenshot.jpg',img)
+        return img
 
     def move_cur_center(self):
         rect = win32gui.GetWindowRect(self.top_hWnd)
@@ -27,13 +32,14 @@ class Simulator(object):
         self.center = center
 
     def left_down(self):
-        mouse.left_down(self.top_hWnd, self.mouse_point[0], self.mouse_point[1])
+        mouse.left_down(self.ctl_hWnd, self.mouse_point[0], self.mouse_point[1])
 
     def move_to(self,target,lbutton=1):
         if lbutton:
-            mouse.mouse_drag(self.top_hWnd,self.mouse_point[0],self.mouse_point[1],target[0],target[1],self.config.is_smooth,self.config.duration,self.config.smooth_k)
+            mouse.mouse_drag(self.ctl_hWnd,self.mouse_point[0],self.mouse_point[1],target[0],target[1],self.config.is_smooth,self.config.duration,self.config.smooth_k)
         else:
-            mouse.move_to(self.top_hWnd,target[0],target[1],0)
+            mouse.move_to(self.ctl_hWnd,target[0],target[1],0)
+        self.mouse_point = target
 
     def fix_aim_offset(self):
         # first move the mouse to center of the simulator and then press
@@ -71,10 +77,17 @@ class Simulator(object):
                         min_dis = dis
                         x = c
         if x is None:
+            print('未检测到弱点，准心回到屏幕中心')
+            # alert not detected,move aim back to center
+            offset = self.center - aim_box_center
+            target_mouse_point = self.mouse_point + offset
+            self.move_to(target_mouse_point)
+            
             return 0
         else:
             print('检测到弱点，位置 : ', x)
-            offset = x - aim_box_center
+            # 因为boss会读你的鼠标指令并反方向移动，所以只需把准心对准中线点即可
+            offset = (x - aim_box_center)/2
             target_mouse_point = self.mouse_point + offset
             self.move_to(target_mouse_point)
 
@@ -114,5 +127,5 @@ class MuMuX(Simulator):
             return True
         callback._hWndList = []
         win32gui.EnumChildWindows(hWnd,callback,None)
-        self.top_hWnd = callback._hWndList[0]
+        self.ctl_hWnd = callback._hWndList[0]
 

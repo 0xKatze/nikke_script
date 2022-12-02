@@ -215,7 +215,7 @@ class YOLOV5_ONNX(object):
         results = torch.tensor(pred)
         results = self.nms(results, conf_thres, iou_thres)
         cast=time.time()-start
-        print("cast time:{}".format(cast))
+        print("检测耗时:{}".format(cast))
 
         img_shape=img.shape[2:]
         #print(img_size)
